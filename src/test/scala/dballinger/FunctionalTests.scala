@@ -5,6 +5,7 @@ import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock._
+import dballinger.GoodResponseBody.UnhappyResponse
 import dballinger.models.{Password, SessionId, Username}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 
@@ -15,6 +16,42 @@ class FunctionalTests extends FlatSpec with Matchers with BeforeAndAfterAll {
   private def baseUrl = s"http://localhost:${server.port()}"
 
   def ops = new Operations(baseUrl)
+
+  trait Fixture {
+    val username = Username(UUID.randomUUID().toString)
+    val password = Password(UUID.randomUUID().toString)
+    val sessionId = SessionId(UUID.randomUUID().toString)
+    server.stubFor(
+      post(urlEqualTo("/auth/sessions"))
+          .withDefaultHeaders
+          .withRequestBody(matchingJsonPath(s"$$.sessions[?(@.username == '${username.value}')]"))
+          .withRequestBody(matchingJsonPath(s"$$.sessions[?(@.password == '${password.value}')]"))
+          .withRequestBody(matchingJsonPath("$.sessions[?(@.caller == 'WEB')]"))
+          .willReturn(aResponse().withBody(loginBody(sessionId)))
+    )
+  }
+
+  "login" should "provide a session id" in new Fixture {
+    ops.login(username, password) should be(Right(sessionId))
+  }
+
+  "login" should "fail when server returns 400" in new Fixture {
+    server.stubFor(
+          post(urlEqualTo("/auth/sessions"))
+              .willReturn(aResponse().withStatus(400))
+        )
+    ops.login(username, password) should be(Left(UnhappyResponse(400, "")))
+  }
+
+  override protected def beforeAll(): Unit = {
+    super.beforeAll()
+    server.start()
+  }
+
+  override protected def afterAll(): Unit = {
+    super.afterAll()
+    server.stop()
+  }
 
   def loginBody(sessionId: SessionId) =
     s"""{
@@ -31,31 +68,6 @@ class FunctionalTests extends FlatSpec with Matchers with BeforeAndAfterAll {
        |        "sessionId": "${sessionId.value}"
        |    }]
        |}""".stripMargin
-
-  "login" should "provide a session id" in {
-    val username = Username(UUID.randomUUID().toString)
-    val password = Password(UUID.randomUUID().toString)
-    val sessionId = SessionId(UUID.randomUUID().toString)
-    server.stubFor(
-      post(urlEqualTo("/auth/sessions"))
-          .withDefaultHeaders
-          .withRequestBody(matchingJsonPath(s"$$.sessions[?(@.username == '${username.value}')]"))
-          .withRequestBody(matchingJsonPath(s"$$.sessions[?(@.password == '${password.value}')]"))
-          .withRequestBody(matchingJsonPath("$.sessions[?(@.caller == 'WEB')]"))
-          .willReturn(aResponse().withBody(loginBody(sessionId)))
-    )
-    ops.login(username, password) should be(Right(sessionId))
-  }
-
-  override protected def beforeAll(): Unit = {
-    super.beforeAll()
-    server.start()
-  }
-
-  override protected def afterAll(): Unit = {
-    super.afterAll()
-    server.stop()
-  }
 
   implicit class MappingBuilderOps(builder: MappingBuilder) {
     def withDefaultHeaders: MappingBuilder = withHeaders(
