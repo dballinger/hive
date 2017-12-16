@@ -1,7 +1,7 @@
 package dballinger
 
 import cats.Eval
-import dballinger.models.{Password, SessionId, Username}
+import dballinger.models._
 import dballinger.views.{SessionRequest, SessionResponse}
 import io.circe._
 import io.circe.generic.auto._
@@ -9,6 +9,7 @@ import io.circe.parser._
 import io.circe.syntax._
 import cats.syntax.either._
 import Operations._
+
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 
 class Operations(baseUrl: String) {
@@ -19,7 +20,11 @@ class Operations(baseUrl: String) {
     ("X-Omnia-Client", "Hive Web Dashboard")
   )
 
-  def login(username: Username, password: Password): Either[AnyRef, SessionId] = {
+  type Login = Either[AnyRef, SessionId]
+  type NodeList = Either[HiveFailure, String]
+  type SingleNode = Either[HiveFailure, String]
+
+  def login(username: Username, password: Password): Login = {
     val requestBody = SessionRequest(username, password).asJson.noSpaces
     val response: HttpResponse[String] = http("auth/sessions").postData(requestBody).asString
     for {
@@ -30,6 +35,11 @@ class Operations(baseUrl: String) {
     } yield SessionId(session.sessionId)
   }
 
+  def listNodes(login: Login): NodeList = ???
+
+  def findSingleNode(nodeList: NodeList): SingleNode = ???
+
+  def setNode(login: Login, node: Node): SingleNode = ???
 }
 
 object Operations {

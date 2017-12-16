@@ -5,8 +5,7 @@ import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock._
-import dballinger.GoodResponseBody.UnhappyResponse
-import dballinger.models.{Password, SessionId, Username}
+import dballinger.models.{Password, SessionId, UnhappyResponse, Username}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 
 class FunctionalTests extends FlatSpec with Matchers with BeforeAndAfterAll {

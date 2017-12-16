@@ -2,8 +2,8 @@ package dballinger
 
 import java.util.UUID
 
-import dballinger.GoodResponseBody.UnhappyResponse
-import org.scalatest.{FlatSpec, FunSuite, Matchers}
+import dballinger.models.UnhappyResponse
+import org.scalatest.{FlatSpec, Matchers}
 
 import scalaj.http.HttpResponse
 
