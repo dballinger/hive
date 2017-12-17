@@ -15,7 +15,9 @@ class FunctionalTests extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   private def baseUrl = s"http://localhost:${server.port()}"
 
-  def ops = new Operations(new Client(baseUrl).post)
+  private lazy val client = new Client(baseUrl)
+
+  def ops = new Operations(client.get, client.post)
 
   trait Fixture {
     val username = Username(UUID.randomUUID().toString)

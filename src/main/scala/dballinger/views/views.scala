@@ -15,3 +15,7 @@ case class SessionResponse(sessions: List[SessionResponseInner])
 
 case class SessionResponseInner(sessionId: String)
 
+
+case class NodesResponse(nodes:List[NodeResponse])
+
+case class NodeResponse(id:String, name:String)
