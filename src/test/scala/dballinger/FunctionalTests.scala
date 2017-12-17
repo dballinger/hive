@@ -8,13 +8,14 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import dballinger.models.{Password, SessionId, UnhappyResponse, Username}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 
+
 class FunctionalTests extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   private val server = new WireMockServer(0)
 
   private def baseUrl = s"http://localhost:${server.port()}"
 
-  def ops = new Operations(baseUrl)
+  def ops = new Operations(new Client(baseUrl).post)
 
   trait Fixture {
     val username = Username(UUID.randomUUID().toString)

@@ -12,4 +12,7 @@ case class Node()
 
 sealed trait HiveFailure
 
-case class UnhappyResponse(status: Int, body: String) extends HiveFailure
+trait HttpFailure extends HiveFailure
+
+case class UnhappyResponse(status: Int, body: String) extends HttpFailure
+case class UnparseableResponse(body: String) extends HttpFailure

@@ -9,27 +9,20 @@ import io.circe.parser._
 import io.circe.syntax._
 import cats.syntax.either._
 import Operations._
+import dballinger.Client.{NoAuthentication, Path, Post}
 
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 
-class Operations(baseUrl: String) {
-
-  def http(path: String): HttpRequest = Http(s"$baseUrl/$path").headers(
-    ("Content-Type", "application/vnd.alertme.zoo-6.1+json"),
-    ("Accept", "application/vnd.alertme.zoo-6.1+json"),
-    ("X-Omnia-Client", "Hive Web Dashboard")
-  )
+class Operations(post: Post) {
 
   type Login = Either[AnyRef, SessionId]
   type NodeList = Either[HiveFailure, String]
   type SingleNode = Either[HiveFailure, String]
 
   def login(username: Username, password: Password): Login = {
-    val requestBody = SessionRequest(username, password).asJson.noSpaces
-    val response: HttpResponse[String] = http("auth/sessions").postData(requestBody).asString
+    val requestBody = SessionRequest(username, password).asJson
     for {
-      body <- GoodResponseBody(response)
-      json <- parse(response.body)
+      json <- post(Path("auth/sessions"), requestBody, NoAuthentication)
       sessionResponse <- json.as[SessionResponse]
       session <- Only(sessionResponse.sessions)
     } yield SessionId(session.sessionId)
@@ -43,7 +36,8 @@ class Operations(baseUrl: String) {
 }
 
 object Operations {
-  def apply() = new Operations("https://api-prod.bgchprod.info:443/omnia")
+  private val client = Client()
+  def apply() = new Operations(client.post)
 }
 
 
