@@ -1,23 +1,19 @@
 package dballinger
 
-import cats.Eval
+import cats.syntax.either._
+import dballinger.Client.{NoAuthentication, Path, Post}
+import dballinger.Only.OnlyFailure
 import dballinger.models._
 import dballinger.views.{SessionRequest, SessionResponse}
-import io.circe._
 import io.circe.generic.auto._
-import io.circe.parser._
 import io.circe.syntax._
-import cats.syntax.either._
-import Operations._
-import dballinger.Client.{NoAuthentication, Path, Post}
-
-import scalaj.http.{Http, HttpRequest, HttpResponse}
 
 class Operations(post: Post) {
 
   type Login = Either[AnyRef, SessionId]
-  type NodeList = Either[HiveFailure, String]
-  type SingleNode = Either[HiveFailure, String]
+  type NodeList = Either[HiveFailure, List[Node]]
+  type SingleNode = Either[OnlyFailure, Node]
+  type SetNode = Either[HiveFailure, Unit]
 
   def login(username: Username, password: Password): Login = {
     val requestBody = SessionRequest(username, password).asJson

@@ -12,6 +12,7 @@ import io.circe._
 import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.syntax._
+import Generators._
 
 class ClientTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 
@@ -24,11 +25,11 @@ class ClientTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val requestBody = aJson
     val responseBody = aJson
     server.stubFor(
-          post(urlEqualTo(path))
-              .withDefaultHeaders
-              .withRequestBody(equalToJson(requestBody.spaces2))
-              .willReturn(aResponse().withBody(responseBody.spaces2))
-        )
+      post(urlEqualTo(path))
+          .withDefaultHeaders
+          .withRequestBody(equalToJson(requestBody.spaces2))
+          .willReturn(aResponse().withBody(responseBody.spaces2))
+    )
 
     val response = new Client(baseUrl).post(Path(path), requestBody, NoAuthentication)
     response should be(Right(responseBody))
@@ -39,11 +40,11 @@ class ClientTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val requestBody = aJson
     val responseBody = aString
     server.stubFor(
-          post(urlEqualTo(path))
-              .withDefaultHeaders
-              .withRequestBody(equalToJson(requestBody.spaces2))
-              .willReturn(aResponse().withBody(responseBody))
-        )
+      post(urlEqualTo(path))
+          .withDefaultHeaders
+          .withRequestBody(equalToJson(requestBody.spaces2))
+          .willReturn(aResponse().withBody(responseBody))
+    )
 
     val response = new Client(baseUrl).post(Path(path), requestBody, NoAuthentication)
     response should be(Left(UnparseableResponse(responseBody)))
@@ -55,24 +56,17 @@ class ClientTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val requestBody = aJson
     val responseBody = aJson
     server.stubFor(
-          post(urlEqualTo(path))
-              .withDefaultHeaders
-              .withRequestBody(equalToJson(requestBody.spaces2))
-              .willReturn(aResponse()
-                  .withStatus(status)
-                  .withBody(responseBody.spaces2)
-              )
-        )
+      post(urlEqualTo(path))
+          .withDefaultHeaders
+          .withRequestBody(equalToJson(requestBody.spaces2))
+          .willReturn(aResponse()
+              .withStatus(status)
+              .withBody(responseBody.spaces2)
+          )
+    )
 
     val response = new Client(baseUrl).post(Path(path), requestBody, NoAuthentication)
     response should be(Left(UnhappyResponse(status, responseBody.spaces2)))
-  }
-
-  def aString: String = UUID.randomUUID().toString.split("-").head
-
-  def aJson:Json = parse(s"""{"$aString":"$aString"}""") match {
-    case Left(fail) => throw new Exception(fail.toString)
-    case Right(json) => json
   }
 
   override protected def beforeAll(): Unit = {

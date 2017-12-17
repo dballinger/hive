@@ -8,7 +8,7 @@ case class SessionId(value: String) {
   def header = ("X-Omnia-Access-Token", value)
 }
 
-case class Node()
+case class Node(id:String, name:String)
 
 sealed trait HiveFailure
 
